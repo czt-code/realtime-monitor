@@ -1,0 +1,20 @@
+{
+  "name": "system-monitor-server",
+  "version": "1.0.0",
+  "description": "System monitoring backend - collects CPU/memory/disk/network/GPU data",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.0",
+    "systeminformation": "^5.23.0"
+  },
+  "devDependencies": {
+    "supertest": "^7.0.0",
+    "vitest": "^2.1.0"
+  }
+}

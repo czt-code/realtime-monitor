@@ -1,0 +1,17 @@
+const { defineConfig } = require('@playwright/test');
+
+module.exports = defineConfig({
+  testDir: './e2e',
+  timeout: 30000,
+  expect: { timeout: 10000 },
+  use: {
+    baseURL: 'http://localhost:5173',
+    headless: true,
+    screenshot: 'off',
+  },
+  webServer: {
+    command: 'npm run dev',
+    url: 'http://localhost:5173',
+    reuseExistingServer: true,
+  },
+});

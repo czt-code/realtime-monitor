@@ -1,0 +1,25 @@
+{
+  "name": "client",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "echarts": "^6.0.0",
+    "vue": "^3.5.32"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.59.1",
+    "@vitejs/plugin-vue": "^6.0.6",
+    "@vue/test-utils": "^2.4.9",
+    "jsdom": "^29.1.0",
+    "playwright": "^1.59.1",
+    "vite": "^8.0.10",
+    "vitest": "^4.1.5"
+  }
+}

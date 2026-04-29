@@ -1,0 +1,12 @@
+node_modules
+.git
+.github
+*.md
+**/node_modules
+**/dist
+**/.vite
+**/test-results
+**/playwright-report
+client/e2e
+client/src/__tests__
+server/tests

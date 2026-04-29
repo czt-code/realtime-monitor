@@ -1,0 +1,14 @@
+services:
+  monitor:
+    build: .
+    container_name: system-monitor
+    ports:
+      - "3001:3001"
+    restart: unless-stopped
+    # Linux 上需要 host 网络模式才能读取宿主机系统信息
+    # network_mode: host
+    # 或挂载必要的系统目录：
+    # volumes:
+    #   - /proc:/proc:ro
+    #   - /sys:/sys:ro
+    #   - /etc/os-release:/etc/os-release:ro
