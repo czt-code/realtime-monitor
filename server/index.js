@@ -135,7 +135,7 @@ async function collectAllSystemData() {
     graphics: {
       controllers: graphics.controllers.map(g => ({
         model: g.model,
-        vram: g.vram,
+        vram: g.vram ? Math.round(g.vram / 1024) : null,
         vendor: g.vendor
       }))
     },

@@ -1,6 +1,6 @@
 <template>
   <div class="dashboard">
-    <TitleBar :hostname="osInfo?.hostname" :online="online" />
+    <TitleBar :hostname="osInfo?.hostname" :online="online" :platform="platformLabel" />
     <div class="dashboard-grid">
       <CpuCard :cpu="cpu" />
       <MemoryCard :memory="memory" />
@@ -14,7 +14,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { fetchSystemData } from '../api/system.js';
 import TitleBar from '../components/TitleBar.vue';
 import CpuCard from '../components/CpuCard.vue';
@@ -35,6 +35,11 @@ const battery = ref(null);
 const temperature = ref(null);
 const osInfo = ref(null);
 const online = ref(false);
+
+const platformLabel = computed(() => {
+  if (!osInfo.value) return '';
+  return osInfo.value.distro || '';
+});
 
 let timer = null;
 
@@ -65,3 +70,21 @@ onUnmounted(() => {
   clearInterval(timer);
 });
 </script>
+
+<style scoped>
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 2fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 8px;
+  padding: 0;
+  min-height: 0;
+}
+
+.cpu-card    { grid-column: 1; grid-row: 1; }
+.memory-card { grid-column: 2; grid-row: 1; }
+.disk-card   { grid-column: 3; grid-row: 1; }
+.network-card{ grid-column: 4; grid-row: 1 / 3; }
+.gpu-card    { grid-column: 1 / 3; grid-row: 2; }
+.process-card{ grid-column: 3 / 4; grid-row: 2; }
+</style>

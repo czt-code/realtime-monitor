@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { mount } from '@vue/test-utils';
 import CpuCard from '../components/CpuCard.vue';
 import MemoryCard from '../components/MemoryCard.vue';
@@ -10,7 +10,20 @@ import InfoBar from '../components/InfoBar.vue';
 import TitleBar from '../components/TitleBar.vue';
 import Dashboard from '../views/Dashboard.vue';
 
-// --- Stub fetchSystemData for Dashboard tests ---
+// Mock echarts (jsdom has no Canvas)
+vi.mock('echarts', () => {
+  const mockChart = {
+    setOption: vi.fn(),
+    dispose: vi.fn(),
+    resize: vi.fn()
+  };
+  return {
+    default: { init: vi.fn(() => mockChart) },
+    init: vi.fn(() => mockChart),
+    graphic: { LinearGradient: function() { return {}; } }
+  };
+});
+
 vi.mock('../api/system.js', () => ({
   fetchSystemData: vi.fn()
 }));
@@ -21,7 +34,6 @@ import { fetchSystemData } from '../api/system.js';
 // F-01 ~ F-02: Dashboard
 // ============================================================
 describe('Dashboard.vue', () => {
-  // F-02: data is null — no crash
   it('F-02: should render without crash when data is null', () => {
     fetchSystemData.mockResolvedValue(null);
     const wrapper = mount(Dashboard, {
@@ -31,8 +43,7 @@ describe('Dashboard.vue', () => {
     expect(wrapper.html()).toBeTruthy();
   });
 
-  // F-01: layout — 8 child cards present
-  it('F-01: should render all 8 child component areas', () => {
+  it('F-01: should render dashboard layout with grid', () => {
     fetchSystemData.mockResolvedValue({
       cpu: { usage: 10, cores: 8, brand: 'Test', manufacturer: 'Test', speed: 3.0 },
       memory: { total: 32e9, used: 8e9, usagePercent: 25, free: 24e9, swapTotal: null, swapUsed: null },
@@ -54,52 +65,52 @@ describe('Dashboard.vue', () => {
 });
 
 // ============================================================
-// F-03 ~ F-05: CpuCard
+// F-03 ~ F-05: CpuCard (ECharts gauge — check chart container)
 // ============================================================
 describe('CpuCard.vue', () => {
-  it('F-03: should display CPU usage and brand', () => {
+  it('F-03: should render chart container and brand text', () => {
     const wrapper = mount(CpuCard, {
       props: { cpu: { usage: 45.2, cores: 8, brand: 'Intel Core i9', manufacturer: 'Intel', speed: 3.6 } }
     });
-    expect(wrapper.text()).toContain('45.2');
+    expect(wrapper.find('.chart-box').exists()).toBe(true);
     expect(wrapper.text()).toContain('Intel Core i9');
     expect(wrapper.text()).toContain('8 核心');
   });
 
-  it('F-04: should handle 0% usage', () => {
+  it('F-04: should render with 0% usage', () => {
     const wrapper = mount(CpuCard, {
       props: { cpu: { usage: 0, cores: 4, brand: 'Test', manufacturer: 'Test', speed: 2.0 } }
     });
-    expect(wrapper.text()).toContain('0');
+    expect(wrapper.find('.chart-box').exists()).toBe(true);
   });
 
-  it('F-05: should handle 100% usage', () => {
+  it('F-05: should render with 100% usage', () => {
     const wrapper = mount(CpuCard, {
       props: { cpu: { usage: 100, cores: 16, brand: 'Test', manufacturer: 'Test', speed: 4.0 } }
     });
-    expect(wrapper.text()).toContain('100');
+    expect(wrapper.find('.chart-box').exists()).toBe(true);
   });
 });
 
 // ============================================================
-// F-06: MemoryCard
+// F-06: MemoryCard (ECharts ring — check chart container)
 // ============================================================
 describe('MemoryCard.vue', () => {
-  it('F-06: should display correct usage percent and GB values', () => {
+  it('F-06: should render chart and show GB values', () => {
     const wrapper = mount(MemoryCard, {
       props: { memory: { total: 32 * 1024 ** 3, used: 8 * 1024 ** 3, usagePercent: 25, free: 24 * 1024 ** 3 } }
     });
-    expect(wrapper.text()).toContain('25');
-    expect(wrapper.text()).toContain('8');
-    expect(wrapper.text()).toContain('32');
+    expect(wrapper.find('.chart-box').exists()).toBe(true);
+    expect(wrapper.text()).toContain('8.0 GB');
+    expect(wrapper.text()).toContain('32.0 GB');
   });
 });
 
 // ============================================================
-// F-07: DiskCard
+// F-07: DiskCard (ECharts bar chart — check chart container)
 // ============================================================
 describe('DiskCard.vue', () => {
-  it('F-07: should render two disks', () => {
+  it('F-07: should render chart for multiple disks', () => {
     const wrapper = mount(DiskCard, {
       props: {
         disk: [
@@ -108,33 +119,26 @@ describe('DiskCard.vue', () => {
         ]
       }
     });
-    expect(wrapper.text()).toContain('C:');
-    expect(wrapper.text()).toContain('D:');
-    expect(wrapper.text()).toContain('40');
-    expect(wrapper.text()).toContain('50');
+    expect(wrapper.find('.chart-box').exists()).toBe(true);
   });
 });
 
 // ============================================================
-// F-08 ~ F-09: NetworkCard
+// F-08 ~ F-09: NetworkCard (ECharts line chart with ring buffer)
 // ============================================================
 describe('NetworkCard.vue', () => {
-  it('F-08: should update with network data', () => {
+  it('F-08: should render chart container for network data', () => {
     const wrapper = mount(NetworkCard, {
       props: { network: [{ iface: 'Ethernet', rx_sec: 1.2e6, tx_sec: 0.8e6 }] }
     });
-    expect(wrapper.text()).toContain('Ethernet');
-    // formatSpeed should show MB/s
-    expect(wrapper.text()).toMatch(/1\.\d MB\/s/);
+    expect(wrapper.find('.chart-box').exists()).toBe(true);
   });
 
-  it('F-09: formatSpeed handles edge cases', () => {
+  it('F-09: should handle empty network array', () => {
     const wrapper = mount(NetworkCard, {
-      props: { network: [{ iface: 'Wi-Fi', rx_sec: -1, tx_sec: 0 }] }
+      props: { network: [] }
     });
-    expect(wrapper.text()).toContain('Wi-Fi');
-    // negative values show '--'
-    expect(wrapper.text()).toContain('--');
+    expect(wrapper.find('.chart-box').exists()).toBe(true);
   });
 });
 
@@ -142,7 +146,7 @@ describe('NetworkCard.vue', () => {
 // F-10 ~ F-11: ProcessTable
 // ============================================================
 describe('ProcessTable.vue', () => {
-  it('F-10: should display top 10 processes sorted by CPU', () => {
+  it('F-10: should display top 10 processes', () => {
     const processes = Array.from({ length: 20 }, (_, i) => ({
       pid: i,
       name: `process-${i}`,
@@ -151,8 +155,7 @@ describe('ProcessTable.vue', () => {
       state: 'running'
     }));
     const wrapper = mount(ProcessTable, { props: { processes } });
-    // Check that only 10 are displayed
-    const rows = wrapper.findAll('tbody tr');
+    const rows = wrapper.findAll('.process-row');
     expect(rows.length).toBe(10);
   });
 
@@ -228,7 +231,7 @@ describe('InfoBar.vue', () => {
 describe('TitleBar.vue', () => {
   it('F-19: should render hostname and online status', () => {
     const wrapper = mount(TitleBar, {
-      props: { hostname: 'my-pc', online: true }
+      props: { hostname: 'my-pc', online: true, platform: 'win32' }
     });
     expect(wrapper.text()).toContain('my-pc');
     expect(wrapper.text()).toContain('系统实时监控大屏');
@@ -237,7 +240,7 @@ describe('TitleBar.vue', () => {
 
   it('F-19b: should show offline dot when offline', () => {
     const wrapper = mount(TitleBar, {
-      props: { hostname: 'my-pc', online: false }
+      props: { hostname: 'my-pc', online: false, platform: '' }
     });
     expect(wrapper.find('.status-dot.offline').exists()).toBe(true);
   });
