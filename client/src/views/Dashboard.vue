@@ -9,7 +9,7 @@
       <GpuCard :controllers="graphics?.controllers" />
       <ProcessTable :processes="processes" />
     </div>
-    <InfoBar :temperature="temperature" :battery="battery" :uptime="osInfo?.uptime" />
+    <InfoBar :temperature="temperature" :battery="battery" :uptime="osInfo?.uptime" :platform="platform" />
   </div>
 </template>
 
@@ -35,6 +35,7 @@ const battery = ref(null);
 const temperature = ref(null);
 const osInfo = ref(null);
 const online = ref(false);
+const platform = ref('');
 
 const platformLabel = computed(() => {
   if (!osInfo.value) return '';
@@ -55,6 +56,7 @@ async function refresh() {
     battery.value = data.battery;
     temperature.value = data.temperature;
     osInfo.value = data.osInfo;
+    platform.value = data.platform;
     online.value = true;
   } else {
     online.value = false;
@@ -74,17 +76,17 @@ onUnmounted(() => {
 <style scoped>
 .dashboard-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr 2fr;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
   grid-template-rows: 1fr 1fr;
   gap: 8px;
   padding: 0;
   min-height: 0;
 }
 
-.cpu-card    { grid-column: 1; grid-row: 1; }
-.memory-card { grid-column: 2; grid-row: 1; }
-.disk-card   { grid-column: 3; grid-row: 1; }
-.network-card{ grid-column: 4; grid-row: 1 / 3; }
-.gpu-card    { grid-column: 1 / 3; grid-row: 2; }
-.process-card{ grid-column: 3 / 4; grid-row: 2; }
+.cpu-card     { grid-column: 1; grid-row: 1; }
+.memory-card  { grid-column: 2; grid-row: 1; }
+.disk-card    { grid-column: 3; grid-row: 1; }
+.network-card { grid-column: 4; grid-row: 1; }
+.gpu-card     { grid-column: 1 / 3; grid-row: 2; }
+.process-card { grid-column: 3 / 5; grid-row: 2; }
 </style>

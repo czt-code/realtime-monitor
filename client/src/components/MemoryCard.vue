@@ -2,7 +2,7 @@
   <div class="memory-card card card-enter" style="animation-delay: 0.2s">
     <div class="card-title">内存</div>
     <div ref="chartRef" class="chart-box"></div>
-    <div class="card-subtitle">{{ formatGB(memory?.used) }} / {{ formatGB(memory?.total) }}</div>
+    <div class="mem-info">{{ formatGB(memory?.used) }} / {{ formatGB(memory?.total) }}</div>
   </div>
 </template>
 
@@ -27,14 +27,13 @@ function initChart() {
 function updateChart() {
   if (!chart) return;
   const used = props.memory?.usagePercent ?? 0;
-  const total = 100;
   chart.setOption({
     series: [{
       type: 'gauge',
       startAngle: 90,
       endAngle: -270,
-      center: ['50%', '55%'],
-      radius: '85%',
+      center: ['50%', '40%'],
+      radius: '70%',
       min: 0,
       max: 100,
       clockwise: true,
@@ -64,7 +63,7 @@ function updateChart() {
         fontSize: 36,
         fontWeight: 'bold',
         color: '#a855f7',
-        offsetCenter: [0, '0%'],
+        offsetCenter: [0, '150%'],
         fontFamily: "'Cascadia Code', monospace",
         formatter: '{value}%'
       },
@@ -79,5 +78,6 @@ onUnmounted(() => { chart?.dispose(); });
 </script>
 
 <style scoped>
-.chart-box { width: 100%; height: 140px; }
+.chart-box { width: 100%; height: 120px; }
+.mem-info { text-align: center; font-size: 12px; color: var(--text-secondary); font-family: var(--font-mono); margin-top: 6px; }
 </style>

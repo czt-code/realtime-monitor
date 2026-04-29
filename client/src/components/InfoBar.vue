@@ -3,7 +3,7 @@
     <div class="info-item">
       <span class="info-icon">🌡</span>
       <span class="info-label">CPU温度</span>
-      <span class="info-value" :class="{ 'value-danger': tempDanger }">{{ tempDisplay }}</span>
+      <span class="info-value" :class="{ 'value-danger': tempDanger }" :title="tempTooltip">{{ tempDisplay }}</span>
     </div>
     <div v-if="battery?.hasBattery" class="info-item">
       <span class="info-icon">{{ battery.isCharging ? '⚡' : '🔋' }}</span>
@@ -29,7 +29,8 @@ import { computed } from 'vue';
 const props = defineProps({
   temperature: Object,
   battery: Object,
-  uptime: Number
+  uptime: Number,
+  platform: String
 });
 
 const tempDisplay = computed(() => {
@@ -38,6 +39,14 @@ const tempDisplay = computed(() => {
 });
 
 const tempDanger = computed(() => (props.temperature?.main ?? 0) > 80);
+
+const tempTooltip = computed(() => {
+  if (props.temperature?.main != null) return '';
+  if (props.platform === 'win32') {
+    return '无法获取CPU温度。请运行 LibreHardwareMonitor，点击 Options → Remote Web Server → 勾选 Enable 并确认端口为 8085 → 点击 Start Server';
+  }
+  return '无法获取CPU温度。请安装 lm-sensors 并运行传感器检测：sudo apt install lm-sensors && sudo sensors-detect';
+});
 
 const uptimeDisplay = computed(() => {
   const u = props.uptime;
@@ -62,7 +71,7 @@ const uptimeDisplay = computed(() => {
 .info-value { color: var(--text-primary); font-family: var(--font-mono); font-weight: 600; }
 .value-danger { color: var(--danger); animation: pulse 1s ease infinite; }
 .info-right { margin-left: auto; }
-.battery-bar { width: 40px; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; }
-.battery-fill { height: 100%; border-radius: 2px; background: var(--success); transition: width 1s ease; }
+.battery-bar { display: inline-block; position: relative; width: 40px; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; vertical-align: middle; }
+.battery-fill { display: block; position: absolute; left: 0; top: 0; height: 100%; border-radius: 2px; background: #22c55e; transition: width 1s ease; }
 @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 </style>

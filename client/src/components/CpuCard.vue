@@ -2,8 +2,10 @@
   <div class="cpu-card card card-enter" style="animation-delay: 0.1s">
     <div class="card-title">CPU 使用率</div>
     <div ref="chartRef" class="chart-box"></div>
-    <div class="card-subtitle">{{ cpu?.brand }}</div>
-    <div class="card-subtitle">{{ cpu?.cores }} 核心 {{ cpu?.speed?.toFixed(1) }} GHz</div>
+    <div class="cpu-info">
+      <div class="cpu-brand">{{ cpu?.brand }}</div>
+      <div class="cpu-detail">{{ cpu?.cores }} 核心 · {{ cpu?.physicalCores }} 物理核 · {{ cpu?.speed?.toFixed(2) ?? '--' }} GHz</div>
+    </div>
   </div>
 </template>
 
@@ -63,7 +65,9 @@ function updateChart() {
         color: '#00d4ff',
         offsetCenter: [0, '72%'],
         fontFamily: "'Cascadia Code', monospace",
-        formatter: '{value}%'
+        formatter: function (value) {
+          return value.toFixed(2) + '%';
+        }
       },
       data: [{ value: usage }]
     }]
@@ -76,5 +80,8 @@ onUnmounted(() => { chart?.dispose(); });
 </script>
 
 <style scoped>
-.chart-box { width: 100%; height: 140px; }
+.chart-box { width: 100%; height: 130px; }
+.cpu-info { text-align: center; margin-top: 2px; }
+.cpu-brand { font-size: 12px; color: var(--text-secondary); font-family: var(--font-mono); }
+.cpu-detail { font-size: 11px; color: var(--text-dim); font-family: var(--font-mono); margin-top: 2px; }
 </style>

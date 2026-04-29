@@ -47,6 +47,38 @@ function getNetworkSpeed(netStats) {
   }));
 }
 
+const { execSync } = require('child_process');
+
+function getLhmTemperature() {
+  if (process.platform !== 'win32') return null;
+
+  // 1. Try LHM WMI namespace
+  try {
+    const psCmd = [
+      "Get-CimInstance -Namespace 'root\\LibreHardwareMonitor' -ClassName Sensor -ErrorAction Stop",
+      "Where-Object { $_.SensorType -eq 'Temperature' -and $_.Name -like '*CPU Package*' }",
+      "Select-Object -First 1 -ExpandProperty Value"
+    ].join(' | ');
+    const result = execSync(`powershell -NoProfile -Command "${psCmd}"`, {
+      timeout: 5000, stdio: 'pipe', windowsHide: true
+    });
+    const val = parseFloat(result.toString().trim());
+    if (Number.isFinite(val)) return val;
+  } catch { /* WMI not available */ }
+
+  // 2. Try LHM web server API (user must enable: Options → Remote Web Server → Start Server)
+  try {
+    const out = execSync(
+      'powershell -NoProfile -Command "try { $r=Invoke-RestMethod -Uri http://localhost:8085/data.json -TimeoutSec 4; function find($n){foreach($x in $n){if($x.Text -eq \'CPU Package\' -and $x.Value){return $x.Value};if($x.Children){$v=find $x.Children;if($v){return $v}}}}; find $r.Children } catch {}"',
+      { timeout: 8000, stdio: 'pipe', windowsHide: true }
+    );
+    const val = parseFloat(out.toString().trim());
+    if (Number.isFinite(val)) return val;
+  } catch { /* web server not available */ }
+
+  return null;
+}
+
 function formatBytes(bytes) {
   if (bytes == null || bytes < 0) return null;
   return bytes;
@@ -55,6 +87,7 @@ function formatBytes(bytes) {
 async function collectAllSystemData() {
   const [
     cpu,
+    cpuLoad,
     cpuSpeed,
     cpuTemp,
     mem,
@@ -68,6 +101,7 @@ async function collectAllSystemData() {
   ] = await Promise.all([
     si.cpu(),
     si.currentLoad(),
+    si.cpuCurrentSpeed().catch(() => ({ avg: null, min: null, max: null })),
     si.cpuTemperature().catch(() => ({ main: null, max: null, cores: [] })),
     si.mem(),
     si.fsSize(),
@@ -111,8 +145,8 @@ async function collectAllSystemData() {
       brand: cpu.brand,
       cores: cpu.cores,
       physicalCores: cpu.physicalCores,
-      usage: cpuSpeed.currentLoad,
-      speed: cpuSpeed.avgClock
+      usage: cpuLoad.currentLoad,
+      speed: cpuSpeed.avg
     },
     memory: {
       total: formatBytes(mem.total),
@@ -145,7 +179,7 @@ async function collectAllSystemData() {
       isCharging: battery.isCharging
     },
     temperature: {
-      main: cpuTemp.main,
+      main: cpuTemp.main ?? getLhmTemperature(),
       max: cpuTemp.max,
       cores: cpuTemp.cores || []
     }

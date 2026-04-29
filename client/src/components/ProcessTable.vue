@@ -12,11 +12,11 @@
         <span class="col-name">{{ p.name }}</span>
         <span class="col-cpu">
           <span class="bar-bg"><span class="bar-fill cpu-fill" :style="{ width: Math.min(p.cpu, 100) + '%' }"></span></span>
-          {{ p.cpu?.toFixed(1) }}%
+          <span class="bar-num">{{ p.cpu?.toFixed(1) }}%</span>
         </span>
         <span class="col-mem">
           <span class="bar-bg"><span class="bar-fill mem-fill" :style="{ width: Math.min(p.mem, 100) + '%' }"></span></span>
-          {{ p.mem?.toFixed(1) }}%
+          <span class="bar-num">{{ p.mem?.toFixed(1) }}%</span>
         </span>
       </div>
     </div>
@@ -44,7 +44,8 @@ defineProps({ processes: { type: Array, default: () => [] } });
 .col-cpu { flex: 1; display: flex; align-items: center; gap: 4px; color: var(--text-secondary); text-align: right; justify-content: flex-end; }
 .col-mem { flex: 1; display: flex; align-items: center; gap: 4px; color: var(--text-secondary); text-align: right; justify-content: flex-end; }
 .bar-bg { width: 56px; height: 8px; background: rgba(255,255,255,0.08); border-radius: 4px; overflow: hidden; flex-shrink: 0; }
-.bar-fill { height: 100%; border-radius: 2px; transition: width 0.6s ease; }
+.bar-fill { display: inline-block; height: 100%; border-radius: 2px; transition: width 0.6s ease; }
+.bar-num { display: inline-block; min-width: 42px; text-align: right; }
 .cpu-fill { background: linear-gradient(90deg, #00d4ff, #22c55e); }
 .mem-fill { background: linear-gradient(90deg, #7c3aed, #a855f7); }
 .empty { text-align: center; padding: 20px; }

@@ -20,8 +20,9 @@ function initChart() {
 
 function updateChart() {
   if (!chart || !props.disk?.length) return;
-  const names = props.disk.map(d => d.fs);
-  const usedVals = props.disk.map(d => d.usagePercent);
+  const sorted = [...props.disk].sort((a, b) => a.fs.localeCompare(b.fs)).reverse();
+  const names = sorted.map(d => d.fs);
+  const usedVals = sorted.map(d => d.usagePercent);
   const colors = usedVals.map(v => {
     if (v > 90) return '#ef4444';
     if (v > 70) return '#f59e0b';
